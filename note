@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Note App</title>
+    <!-- Tailwind CSS for Modern UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-10 px-4 py-3 flex justify-between items-center">
+        <h1 class="text-xl font-bold flex items-center gap-2">
+            <i class="fa-solid fa-note-sticky text-amber-500"></i> My Notes
+        </h1>
+        <div class="flex items-center gap-3">
+            <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-xl">
+                <i class="fa-solid fa-moon dark:hidden"></i>
+                <i class="fa-solid fa-sun hidden dark:inline text-yellow-400"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Search & Filter Bar -->
+    <div class="p-4 max-w-md mx-auto w-full">
+        <div class="relative mb-3">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400"></i>
+            <input type="text" id="searchInput" placeholder="မှတ်စုများကို ရှာရန်..." class="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        
+        <!-- Category Filter Chips -->
+        <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+            <button onclick="filterNotes('all')" class="category-btn px-3 py-1 bg-amber-500 text-white rounded-full text-sm font-medium whitespace-nowrap">အားလုံး</button>
+            <button onclick="filterNotes('Personal')" class="category-btn px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-sm font-medium whitespace-nowrap">ကိုယ်ပိုင်</button>
+            <button onclick="filterNotes('Work')" class="category-btn px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-sm font-medium whitespace-nowrap">အလုပ်</button>
+            <button onclick="filterNotes('Ideas')" class="category-btn px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded-full text-sm font-medium whitespace-nowrap">အကြံဉာဏ်</button>
+        </div>
+    </div>
+
+    <!-- Notes Container -->
+    <main class="flex-1 max-w-md mx-auto w-full px-4 pb-24">
+        <div id="notesList" class="grid grid-cols-1 gap-3">
+            <!-- Notes will inject here -->
+        </div>
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-16 text-gray-400">
+            <i class="fa-regular fa-clipboard text-5xl mb-3"></i>
+            <p>မှတ်စုများ မရှိသေးပါ</p>
+        </div>
+    </main>
+
+    <!-- Floating Action Button to Open Modal -->
+    <button onclick="openModal()" class="fixed bottom-6 right-6 bg-amber-500 hover:bg-amber-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition-transform active:scale-95">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <!-- Add/Edit Note Modal -->
+    <div id="noteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl transform transition-transform">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modalTitle" class="text-lg font-bold">မှတ်စုအသစ် ရေးရန်</h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <input type="hidden" id="noteId">
+            
+            <input type="text" id="noteTitle" placeholder="ခေါင်းစဉ်..." class="w-full mb-3 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl focus:ring-2 focus:ring-amber-500 font-semibold">
+            
+            <textarea id="noteContent" rows="4" placeholder="မှတ်စုအကြောင်းအရာ..." class="w-full mb-3 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+            
+            <!-- Category Selector -->
+            <div class="mb-4">
+                <label class="text-xs text-gray-400 block mb-1">အမျိုးအစား ရွေးရန်</label>
+                <select id="noteCategory" class="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl border-none">
+                    <option value="Personal">ကိုယ်ပိုင်</option>
+                    <option value="Work">အလုပ်</option>
+                    <option value="Ideas">အကြံဉာဏ်</option>
+                </select>
+            </div>
+
+            <!-- Color Palette Selector -->
+            <div class="flex gap-3 mb-5 items-center">
+                <span class="text-xs text-gray-400">အရောင်:</span>
+                <button type="button" onclick="setColor('bg-amber-100 dark:bg-amber-900/30')" class="w-6 h-6 rounded-full bg-amber-200 border-2 border-amber-400 color-picker"></button>
+                <button type="button" onclick="setColor('bg-blue-100 dark:bg-blue-900/30')" class="w-6 h-6 rounded-full bg-blue-200 border-2 border-transparent color-picker"></button>
+                <button type="button" onclick="setColor('bg-emerald-100 dark:bg-emerald-900/30')" class="w-6 h-6 rounded-full bg-emerald-200 border-2 border-transparent color-picker"></button>
+                <button type="button" onclick="setColor('bg-rose-100 dark:bg-rose-900/30')" class="w-6 h-6 rounded-full bg-rose-200 border-2 border-transparent color-picker"></button>
+            </div>
+
+            <button onclick="saveNote()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-xl transition-all">သိမ်းမည်</button>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let notes = JSON.parse(localStorage.getItem('pro_notes')) || [];
+        let selectedColor = 'bg-amber-100 dark:bg-amber-900/30';
+        let currentFilter = 'all';
+
+        // Dark Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        if (localStorage.getItem('theme') === 'dark') {
+            htmlElement.classList.add('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            localStorage.setItem('theme', htmlElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        function openModal(id = null) {
+            document.getElementById('noteModal').classList.remove('hidden');
+            if (id) {
+                let note = notes.find(n => n.id === id);
+                document.getElementById('modalTitle').innerText = 'မှတ်စု ပြင်ဆင်ရန်';
+                document.getElementById('noteId').value = note.id;
+                document.getElementById('noteTitle').value = note.title;
+                document.getElementById('noteContent').value = note.content;
+                document.getElementById('noteCategory').value = note.category;
+                selectedColor = note.color;
+            } else {
+                document.getElementById('modalTitle').innerText = 'မှတ်စုအသစ် ရေးရန်';
+                document.getElementById('noteId').value = '';
+                document.getElementById('noteTitle').value = '';
+                document.getElementById('noteContent').value = '';
+                document.getElementById('noteCategory').value = 'Personal';
+                selectedColor = 'bg-amber-100 dark:bg-amber-900/30';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('noteModal').classList.add('hidden');
+        }
+
+        function setColor(color) {
+            selectedColor = color;
+            document.querySelectorAll('.color-picker').forEach(btn => btn.classList.remove('border-amber-400'));
+            event.target.classList.add('border-amber-400');
+        }
+
+        function saveNote() {
+            let id = document.getElementById('noteId').value;
+            let title = document.getElementById('noteTitle').value.trim();
+            let content = document.getElementById('noteContent').value.trim();
+            let category = document.getElementById('noteCategory').value;
+
+            if (!title && !content) {
+                alert('ကျေးဇူးပြု၍ ခေါင်းစဉ် သို့မဟုတ် အကြောင်းအရာ တစ်ခုခု ရေးပါ။');
+                return;
+            }
+
+            if (id) {
+                notes = notes.map(n => n.id == id ? { ...n, title, content, category, color: selectedColor } : n);
+            } else {
+                let newNote = {
+                    id: Date.now(),
+                    title,
+                    content,
+                    category,
+                    color: selectedColor,
+                    date: new Date().toLocaleDateString()
+                };
+                notes.unshift(newNote);
+            }
+
+            localStorage.setItem('pro_notes', JSON.stringify(notes));
+            closeModal();
+            renderNotes();
+        }
+
+        function deleteNote(id) {
+            if (confirm('ဒီမှတ်စုကို ဖျက်မှာ သေချာပါသလား?')) {
+                notes = notes.filter(n => n.id !== id);
+                localStorage.setItem('pro_notes', JSON.stringify(notes));
+                renderNotes();
+            }
+        }
+
+        function filterNotes(category) {
+            currentFilter = category;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('bg-amber-500', 'text-white');
+                btn.classList.add('bg-gray-200', 'dark:bg-gray-800');
+            });
+            event.target.classList.remove('bg-gray-200', 'dark:bg-gray-800');
+            event.target.classList.add('bg-amber-500', 'text-white');
+            renderNotes();
+        }
+
+        function renderNotes() {
+            let listEl = document.getElementById('notesList');
+            let emptyEl = document.getElementById('emptyState');
+            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = notes.filter(n => {
+                let matchesCategory = currentFilter === 'all' || n.category === currentFilter;
+                let matchesSearch = n.title.toLowerCase().includes(searchTerm) || n.content.toLowerCase().includes(searchTerm);
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+
+            emptyEl.classList.add('hidden');
+            listEl.innerHTML = filtered.map(n => `
+                <div class="${n.color} p-4 rounded-2xl shadow-sm relative group transition-all">
+                    <div class="flex justify-between items-start mb-1">
+                        <h3 class="font-bold text-base line-clamp-1">${n.title || 'ခေါင်းစဉ်မရှိ'}</h3>
+                        <span class="text-[10px] px-2 py-0.5 bg-black/10 dark:bg-white/10 rounded-full">${n.category}</span>
+                    </div>
+                    <p class="text-sm opacity-90 whitespace-pre-wrap line-clamp-3 mb-3">${n.content}</p>
+                    <div class="flex justify-between items-center text-xs opacity-60">
+                        <span>${n.date}</span>
+                        <div class="flex gap-2">
+                            <button onclick="openModal(${n.id})" class="p-1 hover:opacity-100"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteNote(${n.id})" class="p-1 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('searchInput').addEventListener('input', renderNotes);
+        renderNotes();
+    </script>
+</body>
+</html>

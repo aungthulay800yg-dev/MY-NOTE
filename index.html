@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ကျွန်တော့် မှတ်စုစာအုပ်</title>
+    <style>
+        body {
+            background-color: #f5f6fa;
+            color: #333;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #2f3640;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #dcdde1;
+            border-radius: 8px;
+            resize: none;
+            box-sizing: border-box;
+            outline: none;
+        }
+        textarea:focus {
+            border-color: #4cd137;
+        }
+        button {
+            background-color: #4cd137;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .note-list {
+            margin-top: 20px;
+        }
+        .note-card {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            word-wrap: break-word;
+        }
+        .delete-btn {
+            background-color: #e84118;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            float: right;
+            margin-top: 5px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>မှတ်စုစာအုပ် (Notebook)</h2>
+        
+        <!-- မှတ်စုရေးရန် နေရာ -->
+        <textarea id="noteInput" placeholder="မှတ်စုအသစ် ရေးရန်..."></textarea>
+        <button onclick="saveNote()">မှတ်စုသိမ်းမည်</button>
+
+        <!-- သိမ်းထားသော မှတ်စုများပြမည့်နေရာ -->
+        <div class="note-list" id="noteList"></div>
+    </div>
+
+    <script>
+        // ဖုန်းထဲမှာ သိမ်းဆည်းထားတဲ့ မှတ်စုဟောင်းများကို ဖော်ပြရန်
+        document.addEventListener("DOMContentLoaded", displayNotes);
+
+        function saveNote() {
+            const noteInput = document.getElementById('noteInput');
+            const noteText = noteInput.value.trim();
+
+            if (noteText === "") {
+                alert("ကျေးဇူးပြု၍ မှတ်စုတစ်ခုခု ရေးပါ");
+                return;
+            }
+
+            // LocalStorage မှ လက်ရှိမှတ်စုများကို ယူရန်
+            let notes = JSON.parse(localStorage.getItem('myNotes')) || [];
+            notes.unshift(noteText); // ရှေ့ဆုံးကနေ အသစ်ထည့်မည်
+
+            // ဖုန်းထဲတွင် ပြန်လည်သိမ်းဆည်းရန်
+            localStorage.setItem('myNotes', JSON.stringify(notes));
+
+            noteInput.value = ""; // Textarea ကို ရှင်းလင်းမည်
+            displayNotes(); // စာရင်းကို အသစ်ပြန်ပြမည်
+        }
+
+        function displayNotes() {
+            const noteList = document.getElementById('noteList');
+            let notes = JSON.parse(localStorage.getItem('myNotes')) || [];
+
+            noteList.innerHTML = "";
+
+            notes.forEach(function(note, index) {
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                card.innerHTML = `
+                    <p>${note}</p>
+                    <button class="delete-btn" onclick="deleteNote(${index})">ဖျက်မည်</button>
+                    <div style="clear: both;"></div>
+                `;
+                noteList.appendChild(card);
+            });
+        }
+
+        function deleteNote(index) {
+            let notes = JSON.parse(localStorage.getItem('myNotes')) || [];
+            notes.splice(index, 1); // သက်ဆိုင်ရာ မှတ်စုကို ဖျက်မည်
+            localStorage.setItem('myNotes', JSON.stringify(notes));
+            displayNotes(); // စာရင်းကို အသစ်ပြန်ပြမည်
+        }
+    </script>
+
+</body>
+</html>
